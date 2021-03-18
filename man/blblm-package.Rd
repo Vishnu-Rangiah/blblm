@@ -4,11 +4,16 @@
 \name{blblm-package}
 \alias{blblm}
 \alias{blblm-package}
-\title{blblm: What the Package Does (Title Case)}
+\title{blblm: Bag of Little Bootstraps}
 \description{
-More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+blblm is used to implement the bag of little bootstraps for the linear regression model. 
+    It also includes implementation for the bag for the random forest (e.g. blbrf) and logistic regression models (e.g. blblogreg).
+    For bigger datasets and for greater efficiency the package can implement the functions in parallel computing when using the parameter (parallel = TRUE).
 }
 \details{
 Linear Regression with Little Bag of Bootstraps
+}
+\author{
+\strong{Maintainer}: Vishnu Rangiah \email{vrrangiah@ucdavis.com}
+
 }

@@ -1,0 +1,112 @@
+---
+title: "Introduction to blblm: Bag of Little Bootstraps package for statistical models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+```{r setup}
+library(blblm)
+library(parallel)
+```
+
+## Introduction
+
+This document will introduce the blblm package which implements the bag of little bootstraps for the linear regression model. We will be going over how to apply the various functions included in the package to the mtcars data frame. These methods can also be carried over for other data frames to construct linear models. 
+This package also allows for the use of parallel computing to ease calculations on larger data sets. 
+
+We will also explore the difference between using the pure R functions and the included rcpp functions in analyzing datasets. 
+
+
+## DATA 
+
+To explore our package we will use the mtcars R dataset. The data is from the "1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973–74 models)."
+
+**Main Variables**
+
+- [, 1]	mpg	Miles/(US) gallon
+- [, 4]	hp	Gross horsepower
+- [, 6]	wt	Weight (1000 lbs)
+
+We will be mainly using these three variables to construct our linear regression model and to demonstrate our blblm package functions.
+
+```{r,  eval=FALSE, echo=FALSE}
+head(mtcars)
+```
+
+
+
+## Functions
+
+We will aim to highlight the use of the blblm functions which allows for constructing linear models, finding coefficients, confidence intervals, residual standard deviation, residual confident intervals, and predictions.
+
+
+### blblm
+
+The blblm function is used to construct a linear regression model which takes use of the bag of little bootstraps. The first argument is the formula where the relationship among variables is specified. Below we see that we will use (wt) weight and (hp) horsepower to predict (mpg) or miles per gallon for an car. 
+
+Since this model implements bag of little bootstraps we optionally specify the amount of subsamples we want from the data set. And the amount of re-samples of the sub-sample B.
+
+```{r,  eval=FALSE, echo = FALSE}
+fit <- blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 100)
+coef(fit)
+```
+
+For better performance on larger data sets we have also included the option to use parallel computing to construct the linear model. 
+
+```{r, eval=FALSE}
+fit2 <- blblm(mpg ~ wt * hp, data = mtcars, m = 3, B = 1000, parallel = FALSE, nthreads = 2)
+coef(fit2)
+```
+
+To use parallel computing an additional *parallel* parameter must be set to TRUE. Also for ease of use the user may specify the amount of cores they would like to use when performing the function using the *nthreads* parameter. If the *nthreads* parameter is not specified it will default to detectCores(), the amount of available cores in the user's computer. If the user enters a number lower than 2 then the default will be set to 2 and if their number is higher than detectCores() it will be defaulted to detectCores(). 
+
+Parallel computing was implemented using the *future_map* function and is used to calculate the estimates. The clusters are stopped after the estimates are calculated. 
+
+Using an *if,else* statement to check *if(parallel)* we either use *future_map* or else *map* to calculate the estimates part of the linear regression model. 
+
+
+The *coef()* function outputs the relevant estimators for the constructed blb linear model.
+
+
+### confint
+
+```{r}
+confint(fit, c("wt", "hp"))
+```
+
+The *confint* function takes in the blblm linear model and computes the confidence intervals for one or mulitple parameters part of the model. Here we have two parameters of wt and hp specified which represent two variables in the data set. We obtain the 95% confid interval for their estimator values. 
+
+
+### sigma
+```{r}
+sigma(fit)
+```
+
+The *sigma* function takes in the blblm linear model and outputs the residual standard deviation of the weights. There is also an option to specify the level and the confidence parameters which allow for calculating the confidence interval of the residual standard error. 
+
+```{r}
+sigma(fit, confidence = TRUE)
+```
+
+
+### Predict 
+
+```{r}
+predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)))
+predict(fit, data.frame(wt = c(2.5, 3), hp = c(150, 170)), confidence = TRUE)
+```
+
+Our last function includes the *predict* blblm which is a function that predicts values given new data inputted into our blblm model. We are also able to specify if we want a confidence interval to obtain the confidence interval of the new predictions, alpha level can also be used.  
+
+
